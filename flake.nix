@@ -1,5 +1,5 @@
 {
-  description = "Apache Airflow 3.1.1 with Kubernetes support - Built via pip in virtualenv";
+  description = "Apache Airflow (3.1.1, 2.11.0, 2.10.5) with Kubernetes support - Multi-version builds via Nix";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -10,220 +10,205 @@
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
-        python = pkgs.python311;
 
         # ============================================================================
-        # AIRFLOW VERSION CONFIGURATION
+        # AIRFLOW VERSION METADATA
         # ============================================================================
-        # Choose your Airflow version by uncommenting ONE block below.
-        #
-        # Supported versions:
-        #   3.1.1  - Latest stable (Active Support) - RECOMMENDED
-        #   2.11.0 - Latest 2.x (Limited Support until April 2026, Python 3.9+)
-        #   2.10.5 - For Python 3.8 users (Limited Support until April 2026)
-        #
-        # IMPORTANT: Only uncomment ONE version block!
-        # ============================================================================
-
-        # Airflow 3.1.1 (Latest - Active Support - RECOMMENDED)
-        # Released: October 27, 2025
-        # Python: 3.9, 3.10, 3.11, 3.12
-        # K8s Provider: 10.8.2
-        airflowVersion = "3.1.1";
-        pythonVersion = "3.11";
-
-        # # Airflow 2.11.0 (Latest 2.x - Limited Support until April 2026)
-        # # Released: May 20, 2025
-        # # Python: 3.9, 3.10, 3.11, 3.12 (NO Python 3.8!)
-        # # K8s Provider: 10.5.0
-        # # Breaking changes from 2.10: Drops Python 3.8, removes deprecated features
-        # airflowVersion = "2.11.0";
-        # pythonVersion = "3.11";
-
-        # # Airflow 2.10.5 (For Python 3.8 users - Limited Support until April 2026)
-        # # Released: February 6, 2025
-        # # Python: 3.8, 3.9, 3.10, 3.11, 3.12
-        # # K8s Provider: 8.4.x
-        # # Use this if you need Python 3.8 support
-        # airflowVersion = "2.10.5";
-        # pythonVersion = "3.11";
-
-        # ============================================================================
-        # Constraint file URL (auto-generated from version)
-        constraintUrl = "https://raw.githubusercontent.com/apache/airflow/constraints-${airflowVersion}/constraints-${pythonVersion}.txt";
-
-        # Build Airflow package using pip with constraints
-        # NOTE: This uses a Fixed-Output Derivation to allow network access
-        airflow = pkgs.stdenv.mkDerivation {
-          pname = "apache-airflow";
-          version = airflowVersion;
-
-          # Minimal source - we install from PyPI
-          src = pkgs.writeTextFile {
-            name = "airflow-build-script";
-            text = "# Airflow build placeholder";
+        # All supported Airflow versions with their metadata
+        versions = {
+          "3.1.1" = {
+            python = "3.11";
+            k8sProvider = "10.8.2";
+            releaseDate = "2025-10-27";
+            support = "Active Support";
+            pythonVersions = "3.9, 3.10, 3.11, 3.12";
+            recommended = true;
           };
+          "2.11.0" = {
+            python = "3.11";
+            k8sProvider = "10.5.0";
+            releaseDate = "2025-05-20";
+            support = "Limited Support until April 2026";
+            pythonVersions = "3.9, 3.10, 3.11, 3.12 (NO Python 3.8!)";
+            recommended = false;
+          };
+          "2.10.5" = {
+            python = "3.11";
+            k8sProvider = "8.4.x";
+            releaseDate = "2025-02-06";
+            support = "Limited Support until April 2026";
+            pythonVersions = "3.8, 3.9, 3.10, 3.11, 3.12";
+            recommended = false;
+          };
+        };
 
-          nativeBuildInputs = [
-            python
-            pkgs.curl
-            pkgs.cacert  # For HTTPS downloads
-          ];
+        # ============================================================================
+        # VERSION SELECTION (Hybrid Approach)
+        # ============================================================================
+        # Three ways to select version:
+        #   1. Default: Uses 3.1.1 (no action needed)
+        #   2. Environment variable: AIRFLOW_VERSION=2.11.0 nix build --impure .#airflow
+        #   3. Named output: nix build --impure .#airflow-2-11-0
+        # ============================================================================
 
-          buildInputs = [
-            python
-            pkgs.postgresql  # Runtime dependency
-            pkgs.redis       # Runtime dependency
-          ];
+        # Check environment variable, fallback to default
+        envAirflowVersion = builtins.getEnv "AIRFLOW_VERSION";
+        defaultVersion = "3.1.1";
+        selectedVersion = if envAirflowVersion != "" then envAirflowVersion else defaultVersion;
 
-          # This build requires network access for pip downloads
-          # MUST use: nix build --impure
-          # The --impure flag disables the sandbox to allow network access
-          __noChroot = true;
+        # Validate version exists
+        versionExists = builtins.hasAttr selectedVersion versions;
+        _ = if !versionExists && envAirflowVersion != "" then
+          throw "Invalid AIRFLOW_VERSION '${selectedVersion}'. Supported versions: ${builtins.concatStringsSep ", " (builtins.attrNames versions)}"
+        else null;
 
-          buildPhase = ''
-            echo "========================================="
-            echo "Building Apache Airflow ${airflowVersion}"
-            echo "========================================="
+        # Get metadata for selected version
+        versionMeta = versions.${selectedVersion};
+        pythonVersion = versionMeta.python;
 
-            # Create virtualenv in $out
-            ${python}/bin/python -m venv $out
+        # Select Python package based on version
+        python = if pythonVersion == "3.11" then pkgs.python311
+                 else if pythonVersion == "3.10" then pkgs.python310
+                 else if pythonVersion == "3.9" then pkgs.python39
+                 else if pythonVersion == "3.8" then pkgs.python38
+                 else pkgs.python311;
 
-            # Activate virtualenv
-            source $out/bin/activate
+        # ============================================================================
+        # BUILD FUNCTION FACTORY
+        # ============================================================================
+        # Creates an Airflow build with specified version and providers
+        mkAirflow = airflowVersion: buildType:
+          let
+            versionMeta = versions.${airflowVersion};
+            pythonVer = versionMeta.python;
+            pythonPkg = if pythonVer == "3.11" then pkgs.python311
+                        else if pythonVer == "3.10" then pkgs.python310
+                        else if pythonVer == "3.9" then pkgs.python39
+                        else if pythonVer == "3.8" then pkgs.python38
+                        else pkgs.python311;
+            constraintUrl = "https://raw.githubusercontent.com/apache/airflow/constraints-${airflowVersion}/constraints-${pythonVer}.txt";
 
-            # Upgrade pip and build tools
-            echo "Upgrading pip..."
-            pip install --upgrade pip setuptools wheel
+            # Provider extras based on build type
+            providerExtras = if buildType == "full"
+              then "cncf.kubernetes,postgres,redis,http,ssh"
+              else "cncf.kubernetes";
 
-            # Download constraint file
-            echo "Downloading constraint file from:"
-            echo "  ${constraintUrl}"
-            curl -sSL "${constraintUrl}" -o constraints.txt
+            pname = if buildType == "full" then "apache-airflow-full" else "apache-airflow";
+          in
+          pkgs.stdenv.mkDerivation {
+            pname = pname;
+            version = airflowVersion;
 
-            # Install Airflow with Kubernetes provider
-            echo ""
-            echo "Installing apache-airflow[cncf.kubernetes]==${airflowVersion}..."
-            pip install "apache-airflow[cncf.kubernetes]==${airflowVersion}" \
-              --constraint constraints.txt
+            # Minimal source - we install from PyPI
+            src = pkgs.writeTextFile {
+              name = "${pname}-build-script";
+              text = "# Airflow ${airflowVersion} build placeholder";
+            };
 
-            # Verify installation
-            echo ""
-            echo "========================================="
-            echo "✅ Installation complete!"
-            echo "========================================="
-            airflow version
-            echo ""
-            echo "Kubernetes provider test:"
-            python -c "from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator; print('  ✅ KubernetesPodOperator: OK')"
-            echo ""
+            nativeBuildInputs = [
+              pythonPkg
+              pkgs.curl
+              pkgs.cacert
+            ];
 
-            # Cleanup
-            rm -f constraints.txt
-          '';
+            buildInputs = [
+              pythonPkg
+              pkgs.postgresql
+              pkgs.redis
+            ];
 
-          installPhase = ''
-            echo "Virtualenv already created in $out"
-          '';
+            # This build requires network access for pip downloads
+            __noChroot = true;
 
-          # Make sure downloaded files are included in output
-          dontStrip = true;
-          dontPatchELF = true;
-          dontPatchShebangs = false;
+            buildPhase = ''
+              echo "========================================="
+              echo "Building ${pname} ${airflowVersion}"
+              echo "Build type: ${buildType}"
+              echo "Python: ${pythonVer}"
+              echo "========================================="
 
-          meta = with pkgs.lib; {
-            description = "Apache Airflow - Platform to programmatically author, schedule and monitor workflows";
-            longDescription = ''
-              Apache Airflow 3.1.1 with Kubernetes provider, built via pip in a virtualenv.
+              # Create virtualenv in $out
+              ${pythonPkg}/bin/python -m venv $out
+              source $out/bin/activate
 
-              IMPORTANT: This build requires network access during build phase.
-              You MUST use the --impure flag:
-                nix build --impure .#airflow
+              # Upgrade pip and build tools
+              pip install --upgrade pip setuptools wheel
 
-              The --impure flag allows network access for pip to download packages from PyPI.
+              # Download constraint file
+              echo "Downloading constraints from:"
+              echo "  ${constraintUrl}"
+              curl -sSL "${constraintUrl}" -o constraints.txt
+
+              # Install Airflow with providers
+              echo ""
+              echo "Installing apache-airflow[${providerExtras}]==${airflowVersion}..."
+              pip install "apache-airflow[${providerExtras}]==${airflowVersion}" \
+                --constraint constraints.txt
+
+              # Verify installation
+              echo ""
+              echo "========================================="
+              echo "✅ Installation complete!"
+              echo "========================================="
+              airflow version
+              echo ""
+              echo "Provider verification:"
+              python -c "from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator; print('  ✅ KubernetesPodOperator: OK')"
+              echo ""
+
+              # Cleanup
+              rm -f constraints.txt
             '';
-            homepage = "https://airflow.apache.org";
-            license = licenses.asl20;
-            platforms = platforms.unix;
-            maintainers = [ ];
+
+            installPhase = ''
+              echo "Virtualenv created in $out"
+            '';
+
+            dontStrip = true;
+            dontPatchELF = true;
+            dontPatchShebangs = false;
+
+            meta = with pkgs.lib; {
+              description = "Apache Airflow ${airflowVersion} - Workflow orchestration platform";
+              longDescription = ''
+                Apache Airflow ${airflowVersion} with ${if buildType == "full" then "multiple providers" else "Kubernetes provider"}.
+                Built via pip in a virtualenv.
+
+                IMPORTANT: Requires --impure flag for network access:
+                  nix build --impure .#${pname}
+
+                Support Status: ${versionMeta.support}
+                Python Versions: ${versionMeta.pythonVersions}
+                K8s Provider: ${versionMeta.k8sProvider}
+              '';
+              homepage = "https://airflow.apache.org";
+              license = licenses.asl20;
+              platforms = platforms.unix;
+            };
           };
-        };
-
-        # Build Airflow with additional providers
-        airflow-full = pkgs.stdenv.mkDerivation {
-          pname = "apache-airflow-full";
-          version = airflowVersion;
-
-          src = pkgs.writeTextFile {
-            name = "airflow-full-build-script";
-            text = "# Airflow full build placeholder";
-          };
-
-          nativeBuildInputs = [
-            python
-            pkgs.curl
-            pkgs.cacert
-          ];
-
-          buildInputs = [
-            python
-            pkgs.postgresql
-            pkgs.redis
-          ];
-
-          # This build requires network access for pip downloads
-          # MUST use: nix build --impure
-          __noChroot = true;
-
-          buildPhase = ''
-            echo "========================================="
-            echo "Building Full Apache Airflow ${airflowVersion}"
-            echo "========================================="
-
-            ${python}/bin/python -m venv $out
-            source $out/bin/activate
-
-            pip install --upgrade pip setuptools wheel
-
-            echo "Downloading constraint file..."
-            curl -sSL "${constraintUrl}" -o constraints.txt
-
-            echo ""
-            echo "Installing apache-airflow with multiple providers..."
-            pip install "apache-airflow[cncf.kubernetes,postgres,redis,http,ssh]==${airflowVersion}" \
-              --constraint constraints.txt
-
-            echo ""
-            echo "========================================="
-            echo "✅ Full installation complete!"
-            echo "========================================="
-            airflow version
-            echo ""
-
-            rm -f constraints.txt
-          '';
-
-          installPhase = ''
-            echo "Virtualenv created in $out"
-          '';
-
-          dontStrip = true;
-          dontPatchELF = true;
-          dontPatchShebangs = false;
-
-          meta = with pkgs.lib; {
-            description = "Apache Airflow with common providers (K8s, postgres, redis, http, ssh)";
-            homepage = "https://airflow.apache.org";
-            license = licenses.asl20;
-            platforms = platforms.unix;
-          };
-        };
 
       in {
+        # ============================================================================
+        # PACKAGE OUTPUTS
+        # ============================================================================
         packages = {
-          default = airflow;
-          airflow = airflow;
-          airflow-full = airflow-full;
+          # Dynamic outputs (respect $AIRFLOW_VERSION environment variable)
+          default = mkAirflow selectedVersion "basic";
+          airflow = mkAirflow selectedVersion "basic";
+          airflow-full = mkAirflow selectedVersion "full";
+
+          # Named outputs for explicit version selection
+          # Airflow 3.1.1
+          airflow-3-1-1 = mkAirflow "3.1.1" "basic";
+          airflow-full-3-1-1 = mkAirflow "3.1.1" "full";
+
+          # Airflow 2.11.0
+          airflow-2-11-0 = mkAirflow "2.11.0" "basic";
+          airflow-full-2-11-0 = mkAirflow "2.11.0" "full";
+
+          # Airflow 2.10.5
+          airflow-2-10-5 = mkAirflow "2.10.5" "basic";
+          airflow-full-2-10-5 = mkAirflow "2.10.5" "full";
         };
 
         # Development shell
@@ -243,40 +228,52 @@
             echo "║   Apache Airflow Development Environment              ║"
             echo "╚════════════════════════════════════════════════════════╝"
             echo ""
-            echo "Python: ${python}/bin/python"
-            echo ""
             echo "Active Configuration:"
-            echo "  Airflow Version: ${airflowVersion}"
+            echo "  Airflow Version: ${selectedVersion} ${if versionMeta.recommended then "⭐" else ""}"
             echo "  Python Version: ${pythonVersion}"
+            echo "  Support: ${versionMeta.support}"
             echo ""
             echo "Supported Versions:"
             echo "  3.1.1  - Latest (Active Support) ⭐"
             echo "  2.11.0 - Latest 2.x (Limited Support, Python 3.9+)"
             echo "  2.10.5 - Python 3.8 support (Limited Support)"
             echo ""
-            echo "To change version:"
-            echo "  • Edit flake.nix (uncomment desired version block)"
+            echo "Build Options (3 ways to select version):"
             echo ""
-            echo "To build Airflow (requires --impure flag):"
-            echo "  nix build --impure .#airflow"
-            echo "  nix build --impure .#airflow-full"
+            echo "  1. Default (${defaultVersion}):"
+            echo "     nix build --impure .#airflow"
             echo ""
-            echo "To use built Airflow:"
+            echo "  2. Environment variable:"
+            echo "     AIRFLOW_VERSION=2.11.0 nix build --impure .#airflow"
+            echo "     AIRFLOW_VERSION=2.10.5 nix build --impure .#airflow-full"
+            echo ""
+            echo "  3. Named outputs:"
+            echo "     nix build --impure .#airflow-3-1-1"
+            echo "     nix build --impure .#airflow-2-11-0"
+            echo "     nix build --impure .#airflow-2-10-5"
+            echo "     nix build --impure .#airflow-full-3-1-1"
+            echo ""
+            echo "List all outputs:"
+            echo "  nix flake show"
+            echo ""
+            echo "Use built Airflow:"
             echo "  ./result/bin/airflow version"
             echo "  source result/bin/activate"
             echo ""
-            echo "📖 See SETUP.md for detailed version information"
+            echo "📖 See BUILDING.md for detailed build instructions"
             echo ""
           '';
         };
 
         # Apps - for direct execution
         apps = {
+          default = {
+            type = "app";
+            program = "${mkAirflow selectedVersion "basic"}/bin/airflow";
+          };
           airflow = {
             type = "app";
-            program = "${airflow}/bin/python";
-            # Note: Direct execution of virtualenv-installed scripts is tricky
-            # Users should source the virtualenv instead
+            program = "${mkAirflow selectedVersion "basic"}/bin/airflow";
           };
         };
       }
