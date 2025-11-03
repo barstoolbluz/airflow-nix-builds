@@ -1,0 +1,953 @@
+{
+  "lockfile-version": 1,
+  "manifest": {
+    "version": 1,
+    "install": {
+      "curl": {
+        "pkg-path": "curl"
+      },
+      "git": {
+        "pkg-path": "git"
+      },
+      "kind": {
+        "pkg-path": "kind"
+      },
+      "kubectl": {
+        "pkg-path": "kubectl"
+      },
+      "postgresql_16": {
+        "pkg-path": "postgresql_16"
+      },
+      "python311": {
+        "pkg-path": "python311"
+      },
+      "redis": {
+        "pkg-path": "redis"
+      }
+    },
+    "hook": {
+      "on-activate": "# ============================================================================\n# AIRFLOW VERSION CONFIGURATION\n# ============================================================================\n# Choose your Airflow version by uncommenting ONE block below.\n# Or override at runtime: AIRFLOW_VERSION=2.11.0 flox activate\n#\n# Supported versions:\n#   3.1.1  - Latest stable (Active Support) - RECOMMENDED\n#   2.11.0 - Latest 2.x (Limited Support until April 2026, Python 3.9+)\n#   2.10.5 - For Python 3.8 users (Limited Support until April 2026)\n#\n# IMPORTANT: Only uncomment ONE version block!\n# ============================================================================\n\n# Airflow 3.1.1 (Latest - Active Support - RECOMMENDED)\n# Released: October 27, 2025\n# Python: 3.9, 3.10, 3.11, 3.12\n# K8s Provider: 10.8.2\nexport AIRFLOW_VERSION=\"${AIRFLOW_VERSION:-3.1.1}\"\nexport PYTHON_VERSION=\"${PYTHON_VERSION:-3.11}\"\n\n# # Airflow 2.11.0 (Latest 2.x - Limited Support until April 2026)\n# # Released: May 20, 2025\n# # Python: 3.9, 3.10, 3.11, 3.12 (NO Python 3.8!)\n# # K8s Provider: 10.5.0\n# # Breaking changes from 2.10: Drops Python 3.8, removes deprecated features\n# export AIRFLOW_VERSION=\"${AIRFLOW_VERSION:-2.11.0}\"\n# export PYTHON_VERSION=\"${PYTHON_VERSION:-3.11}\"\n\n# # Airflow 2.10.5 (For Python 3.8 users - Limited Support until April 2026)\n# # Released: February 6, 2025\n# # Python: 3.8, 3.9, 3.10, 3.11, 3.12\n# # K8s Provider: 8.4.x\n# # Use this if you need Python 3.8 support\n# export AIRFLOW_VERSION=\"${AIRFLOW_VERSION:-2.10.5}\"\n# export PYTHON_VERSION=\"${PYTHON_VERSION:-3.11}\"\n\n# ============================================================================\n# Constraint file URL (auto-generated from version)\nexport CONSTRAINT_URL=\"https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${PYTHON_VERSION}.txt\"\n\necho \"\"\necho \"🚀 Apache Airflow Build Environment\"\necho \"\"\necho \"Active Configuration:\"\necho \"  Airflow Version: ${AIRFLOW_VERSION}\"\necho \"  Python Version: ${PYTHON_VERSION}\"\necho \"  K8s Provider: (auto-selected from constraints)\"\necho \"\"\necho \"Supported Versions:\"\necho \"  3.1.1  - Latest (Active Support) ⭐\"\necho \"  2.11.0 - Latest 2.x (Limited Support, Python 3.9+)\"\necho \"  2.10.5 - Python 3.8 support (Limited Support)\"\necho \"\"\necho \"To change version:\"\necho \"  • Edit .flox/env/manifest.toml (uncomment desired version)\"\necho \"  • Or: AIRFLOW_VERSION=2.11.0 flox activate\"\necho \"\"\necho \"Available builds:\"\necho \"  flox build airflow           - Airflow with Kubernetes support\"\necho \"  flox build airflow-full      - Airflow with common providers\"\necho \"  flox build airflow-minimal   - Minimal Airflow installation\"\necho \"\"\necho \"After building:\"\necho \"  ./result-airflow/bin/airflow version\"\necho \"  source result-airflow/bin/activate\"\necho \"\"\necho \"📖 See SETUP.md for detailed version information\"\necho \"\"\n"
+    },
+    "profile": {
+      "bash": "# Helper function to activate built Airflow\nactivate-airflow() {\n    local build_name=\"${1:-airflow}\"\n    if [ -f \"result-${build_name}/bin/activate\" ]; then\n        echo \"Activating ${build_name}...\"\n        source \"result-${build_name}/bin/activate\"\n        echo \"✅ Airflow activated. Run 'airflow version' to verify.\"\n    else\n        echo \"❌ Build not found. Run: flox build ${build_name}\"\n        return 1\n    fi\n}\nexport -f activate-airflow\n\n# Helper to build and activate in one command\nbuild-and-activate() {\n    local build_name=\"${1:-airflow}\"\n    echo \"Building ${build_name}...\"\n    flox build \"${build_name}\" && activate-airflow \"${build_name}\"\n}\nexport -f build-and-activate\n",
+      "zsh": "activate-airflow() {\n    local build_name=\"${1:-airflow}\"\n    if [ -f \"result-${build_name}/bin/activate\" ]; then\n        echo \"Activating ${build_name}...\"\n        source \"result-${build_name}/bin/activate\"\n        echo \"✅ Airflow activated. Run 'airflow version' to verify.\"\n    else\n        echo \"❌ Build not found. Run: flox build ${build_name}\"\n        return 1\n    fi\n}\n\nbuild-and-activate() {\n    local build_name=\"${1:-airflow}\"\n    echo \"Building ${build_name}...\"\n    flox build \"${build_name}\" && activate-airflow \"${build_name}\"\n}\n",
+      "fish": "function activate-airflow\n    set build_name $argv[1]\n    if test -z \"$build_name\"\n        set build_name \"airflow\"\n    end\n\n    if test -f \"result-$build_name/bin/activate\"\n        echo \"Activating $build_name...\"\n        source \"result-$build_name/bin/activate\"\n        echo \"✅ Airflow activated. Run 'airflow version' to verify.\"\n    else\n        echo \"❌ Build not found. Run: flox build $build_name\"\n        return 1\n    end\nend\n\nfunction build-and-activate\n    set build_name $argv[1]\n    if test -z \"$build_name\"\n        set build_name \"airflow\"\n    end\n\n    echo \"Building $build_name...\"\n    flox build \"$build_name\" && activate-airflow \"$build_name\"\nend\n"
+    },
+    "options": {
+      "systems": [
+        "aarch64-darwin",
+        "aarch64-linux",
+        "x86_64-darwin",
+        "x86_64-linux"
+      ]
+    },
+    "build": {
+      "airflow": {
+        "command": "echo \"Building Apache Airflow ${AIRFLOW_VERSION} with Kubernetes support...\"\n\n# Create virtualenv in $out\npython -m venv \"$out\"\n\n# Activate virtualenv\nsource \"$out/bin/activate\"\n\n# Upgrade pip and build tools\npip install --upgrade pip setuptools wheel\n\n# Download constraint file\necho \"Downloading constraints from ${CONSTRAINT_URL}...\"\ncurl -sSL \"${CONSTRAINT_URL}\" -o /tmp/airflow-constraints.txt\n\n# Install Airflow with Kubernetes provider\necho \"Installing apache-airflow[cncf.kubernetes]==${AIRFLOW_VERSION}...\"\npip install \"apache-airflow[cncf.kubernetes]==${AIRFLOW_VERSION}\" \\\n  --constraint /tmp/airflow-constraints.txt\n\n# Verify installation\necho \"\"\necho \"✅ Installation complete!\"\nairflow version\necho \"\"\necho \"Kubernetes provider:\"\npython -c \"from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator; print('  KubernetesPodOperator: OK')\"\n\n# Cleanup\nrm -f /tmp/airflow-constraints.txt\n",
+        "description": "Apache Airflow with Kubernetes provider"
+      },
+      "airflow-full": {
+        "command": "echo \"Building Apache Airflow ${AIRFLOW_VERSION} with common providers...\"\n\npython -m venv \"$out\"\nsource \"$out/bin/activate\"\npip install --upgrade pip setuptools wheel\n\ncurl -sSL \"${CONSTRAINT_URL}\" -o /tmp/airflow-constraints.txt\n\necho \"Installing apache-airflow with multiple providers...\"\npip install \"apache-airflow[cncf.kubernetes,postgres,redis,http,ssh]==${AIRFLOW_VERSION}\" \\\n  --constraint /tmp/airflow-constraints.txt\n\necho \"\"\necho \"✅ Full installation complete!\"\nairflow version\necho \"\"\necho \"Installed providers:\"\nairflow providers list 2>/dev/null | grep -E \"apache-airflow-providers-(cncf-kubernetes|postgres|redis|http|ssh)\" || echo \"  (run 'airflow providers list' after activation)\"\n\nrm -f /tmp/airflow-constraints.txt\n",
+        "description": "Apache Airflow with common providers (kubernetes, postgres, redis, http, ssh)"
+      },
+      "airflow-minimal": {
+        "command": "echo \"Building minimal Apache Airflow ${AIRFLOW_VERSION}...\"\n\npython -m venv \"$out\"\nsource \"$out/bin/activate\"\npip install --upgrade pip setuptools wheel\n\ncurl -sSL \"${CONSTRAINT_URL}\" -o /tmp/airflow-constraints.txt\n\necho \"Installing apache-airflow (no extra providers)...\"\npip install \"apache-airflow==${AIRFLOW_VERSION}\" \\\n  --constraint /tmp/airflow-constraints.txt\n\necho \"\"\necho \"✅ Minimal installation complete!\"\nairflow version\n\nrm -f /tmp/airflow-constraints.txt\n",
+        "description": "Minimal Apache Airflow installation (LocalExecutor only)"
+      }
+    }
+  },
+  "packages": [
+    {
+      "attr_path": "curl",
+      "broken": false,
+      "derivation": "/nix/store/g9b4bixj0n0bv1vf9bz0kakq86hh24h4-curl-8.16.0.drv",
+      "description": "Command line tool for transferring files with URL syntax",
+      "install_id": "curl",
+      "license": "curl",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=6a08e6bb4e46ff7fcbb53d409b253f6bad8a28ce",
+      "name": "curl-8.16.0",
+      "pname": "curl",
+      "rev": "6a08e6bb4e46ff7fcbb53d409b253f6bad8a28ce",
+      "rev_count": 883951,
+      "rev_date": "2025-10-25T06:24:58Z",
+      "scrape_date": "2025-10-27T02:08:15.120034Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "8.16.0",
+      "outputs_to_install": [
+        "bin",
+        "man"
+      ],
+      "outputs": {
+        "bin": "/nix/store/982cq6ga80yn9nghx479fbqqwf7kf8n1-curl-8.16.0-bin",
+        "dev": "/nix/store/qxzi15y4apihsg2infxn66b6hz5lws3h-curl-8.16.0-dev",
+        "devdoc": "/nix/store/bz1ap1ahksz62gz79h8anfhsyz1ir0jw-curl-8.16.0-devdoc",
+        "man": "/nix/store/rsdippinyvz3myz505vi6sgx8vmh30px-curl-8.16.0-man",
+        "out": "/nix/store/8fgfydjv40m1pw8bpwm30kxw24284fvg-curl-8.16.0"
+      },
+      "system": "aarch64-darwin",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "curl",
+      "broken": false,
+      "derivation": "/nix/store/iij2ckwkfzzc50q6yr4jrqxc4kqiyrz6-curl-8.16.0.drv",
+      "description": "Command line tool for transferring files with URL syntax",
+      "install_id": "curl",
+      "license": "curl",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=6a08e6bb4e46ff7fcbb53d409b253f6bad8a28ce",
+      "name": "curl-8.16.0",
+      "pname": "curl",
+      "rev": "6a08e6bb4e46ff7fcbb53d409b253f6bad8a28ce",
+      "rev_count": 883951,
+      "rev_date": "2025-10-25T06:24:58Z",
+      "scrape_date": "2025-10-27T02:18:26.359385Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "8.16.0",
+      "outputs_to_install": [
+        "bin",
+        "man"
+      ],
+      "outputs": {
+        "bin": "/nix/store/qnakzidljavpz27az7gjkyydb7ckjg6r-curl-8.16.0-bin",
+        "debug": "/nix/store/zxlv6n85qw1lzmx4xblgc0lz1vv0hg1f-curl-8.16.0-debug",
+        "dev": "/nix/store/aypq6najvfyhzx4k80a1vy329qmqj9zb-curl-8.16.0-dev",
+        "devdoc": "/nix/store/b7w1516fx1mywmkl9dqsm1rnjmpvz7a3-curl-8.16.0-devdoc",
+        "man": "/nix/store/dfgh660rbbj8s3l3xvy8klmkks4pkg3w-curl-8.16.0-man",
+        "out": "/nix/store/pl917hpmpx64fisdisv2zjmk09grvm4g-curl-8.16.0"
+      },
+      "system": "aarch64-linux",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "curl",
+      "broken": false,
+      "derivation": "/nix/store/1ln4jpjmml6ndr42f2rbv21j8racgiik-curl-8.16.0.drv",
+      "description": "Command line tool for transferring files with URL syntax",
+      "install_id": "curl",
+      "license": "curl",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=6a08e6bb4e46ff7fcbb53d409b253f6bad8a28ce",
+      "name": "curl-8.16.0",
+      "pname": "curl",
+      "rev": "6a08e6bb4e46ff7fcbb53d409b253f6bad8a28ce",
+      "rev_count": 883951,
+      "rev_date": "2025-10-25T06:24:58Z",
+      "scrape_date": "2025-10-27T02:29:21.679404Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "8.16.0",
+      "outputs_to_install": [
+        "bin",
+        "man"
+      ],
+      "outputs": {
+        "bin": "/nix/store/irf7vpckgi9128jh7by1438ns3qgvfqz-curl-8.16.0-bin",
+        "dev": "/nix/store/sv8p7spya9zf0163xb454wvl7jbmws57-curl-8.16.0-dev",
+        "devdoc": "/nix/store/85fm556955nskhdr8q66ny2fk4fggzh1-curl-8.16.0-devdoc",
+        "man": "/nix/store/a6znnvphjwyzhxjq8vbkr35ng6xglbfb-curl-8.16.0-man",
+        "out": "/nix/store/sfr307vn71cyfnfmgckhwggq251rnrfr-curl-8.16.0"
+      },
+      "system": "x86_64-darwin",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "curl",
+      "broken": false,
+      "derivation": "/nix/store/yh73y300l9r1csw9zghd7im341rrp106-curl-8.16.0.drv",
+      "description": "Command line tool for transferring files with URL syntax",
+      "install_id": "curl",
+      "license": "curl",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=6a08e6bb4e46ff7fcbb53d409b253f6bad8a28ce",
+      "name": "curl-8.16.0",
+      "pname": "curl",
+      "rev": "6a08e6bb4e46ff7fcbb53d409b253f6bad8a28ce",
+      "rev_count": 883951,
+      "rev_date": "2025-10-25T06:24:58Z",
+      "scrape_date": "2025-10-27T03:00:54.560041Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "8.16.0",
+      "outputs_to_install": [
+        "bin",
+        "man"
+      ],
+      "outputs": {
+        "bin": "/nix/store/xvh4bi0cc2cw18lpn6ax9m4zwnn1s9lj-curl-8.16.0-bin",
+        "debug": "/nix/store/33lwk5v78214pmlnhphbijpvbh8gjbbq-curl-8.16.0-debug",
+        "dev": "/nix/store/b65dj8iryqd1bss2qlg5ipxqndngcl9n-curl-8.16.0-dev",
+        "devdoc": "/nix/store/bz67f9xwj2i7zanwkrxb6dy9bbm2283d-curl-8.16.0-devdoc",
+        "man": "/nix/store/q4jbdyq7f0zks4i9xhfyx2pj6x92g9dj-curl-8.16.0-man",
+        "out": "/nix/store/8np9zvwqmwsnbkbrwm8x7jq4ygdkjz5g-curl-8.16.0"
+      },
+      "system": "x86_64-linux",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "git",
+      "broken": false,
+      "derivation": "/nix/store/wlsljhn89ygfpl3z6sl4lhvllscd86xz-git-2.51.0.drv",
+      "description": "Distributed version control system",
+      "install_id": "git",
+      "license": "GPL-2.0",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=6a08e6bb4e46ff7fcbb53d409b253f6bad8a28ce",
+      "name": "git-2.51.0",
+      "pname": "git",
+      "rev": "6a08e6bb4e46ff7fcbb53d409b253f6bad8a28ce",
+      "rev_count": 883951,
+      "rev_date": "2025-10-25T06:24:58Z",
+      "scrape_date": "2025-10-27T02:08:16.450292Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "2.51.0",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "doc": "/nix/store/fwx23zsz09rirgfp0r5kzsh7nbg6d9ff-git-2.51.0-doc",
+        "out": "/nix/store/1xqc4nc97vwmx6dqrk0zns79xncb5chw-git-2.51.0"
+      },
+      "system": "aarch64-darwin",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "git",
+      "broken": false,
+      "derivation": "/nix/store/2y7pmls9hlkj2a3y5b3660ln7hvxl62m-git-2.51.0.drv",
+      "description": "Distributed version control system",
+      "install_id": "git",
+      "license": "GPL-2.0",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=6a08e6bb4e46ff7fcbb53d409b253f6bad8a28ce",
+      "name": "git-2.51.0",
+      "pname": "git",
+      "rev": "6a08e6bb4e46ff7fcbb53d409b253f6bad8a28ce",
+      "rev_count": 883951,
+      "rev_date": "2025-10-25T06:24:58Z",
+      "scrape_date": "2025-10-27T02:18:27.374629Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "2.51.0",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "debug": "/nix/store/h5r9901ms52cxfqvm4pb0d2y24ddc9vv-git-2.51.0-debug",
+        "doc": "/nix/store/0dp21kpx7d2xh0y29y79wwggrhgnjks5-git-2.51.0-doc",
+        "out": "/nix/store/1xrbd5mmc64lx3hwm07kq27f445rs4xh-git-2.51.0"
+      },
+      "system": "aarch64-linux",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "git",
+      "broken": false,
+      "derivation": "/nix/store/qrz3n768mlyfnr0ibh0xm59cy6g0ymlh-git-2.51.0.drv",
+      "description": "Distributed version control system",
+      "install_id": "git",
+      "license": "GPL-2.0",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=6a08e6bb4e46ff7fcbb53d409b253f6bad8a28ce",
+      "name": "git-2.51.0",
+      "pname": "git",
+      "rev": "6a08e6bb4e46ff7fcbb53d409b253f6bad8a28ce",
+      "rev_count": 883951,
+      "rev_date": "2025-10-25T06:24:58Z",
+      "scrape_date": "2025-10-27T02:29:22.300307Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "2.51.0",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "doc": "/nix/store/sl8z2ijj21c8r4dxaa0vi4bv8xyavq26-git-2.51.0-doc",
+        "out": "/nix/store/wcnaxbjl7fkdfy20jgyj4pf6jarc36p8-git-2.51.0"
+      },
+      "system": "x86_64-darwin",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "git",
+      "broken": false,
+      "derivation": "/nix/store/hnfy2a69xlpqw8d8na5fcf72q0ajmp5z-git-2.51.0.drv",
+      "description": "Distributed version control system",
+      "install_id": "git",
+      "license": "GPL-2.0",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=6a08e6bb4e46ff7fcbb53d409b253f6bad8a28ce",
+      "name": "git-2.51.0",
+      "pname": "git",
+      "rev": "6a08e6bb4e46ff7fcbb53d409b253f6bad8a28ce",
+      "rev_count": 883951,
+      "rev_date": "2025-10-25T06:24:58Z",
+      "scrape_date": "2025-10-27T03:00:55.696103Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "2.51.0",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "debug": "/nix/store/n2qv18fvl3d4jn4y1828mk89zpl83840-git-2.51.0-debug",
+        "doc": "/nix/store/b7382m8mvzm3336f6lj8wdbqwsclc0yx-git-2.51.0-doc",
+        "out": "/nix/store/60440kg5c51rrlpinkk2rkg020q5q6kv-git-2.51.0"
+      },
+      "system": "x86_64-linux",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "kind",
+      "broken": false,
+      "derivation": "/nix/store/djdid6hdgv4dr94svch67kpk7c928q7h-kind-0.30.0.drv",
+      "description": "Kubernetes IN Docker - local clusters for testing Kubernetes",
+      "install_id": "kind",
+      "license": "Apache-2.0",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=6a08e6bb4e46ff7fcbb53d409b253f6bad8a28ce",
+      "name": "kind-0.30.0",
+      "pname": "kind",
+      "rev": "6a08e6bb4e46ff7fcbb53d409b253f6bad8a28ce",
+      "rev_count": 883951,
+      "rev_date": "2025-10-25T06:24:58Z",
+      "scrape_date": "2025-10-27T02:08:30.833387Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "0.30.0",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/0jqqgl8vg7ppk70zgagfbv7maydcz2r4-kind-0.30.0"
+      },
+      "system": "aarch64-darwin",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "kind",
+      "broken": false,
+      "derivation": "/nix/store/hir1dmhvfn0vd1lhql3x35b8j9dwcxhm-kind-0.30.0.drv",
+      "description": "Kubernetes IN Docker - local clusters for testing Kubernetes",
+      "install_id": "kind",
+      "license": "Apache-2.0",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=6a08e6bb4e46ff7fcbb53d409b253f6bad8a28ce",
+      "name": "kind-0.30.0",
+      "pname": "kind",
+      "rev": "6a08e6bb4e46ff7fcbb53d409b253f6bad8a28ce",
+      "rev_count": 883951,
+      "rev_date": "2025-10-25T06:24:58Z",
+      "scrape_date": "2025-10-27T02:18:47.812710Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "0.30.0",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/4fh21i34gifqz12d2kbk2r14xyh4m885-kind-0.30.0"
+      },
+      "system": "aarch64-linux",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "kind",
+      "broken": false,
+      "derivation": "/nix/store/5rg8s4vashvs6q456bnn9x1gzhiy80ma-kind-0.30.0.drv",
+      "description": "Kubernetes IN Docker - local clusters for testing Kubernetes",
+      "install_id": "kind",
+      "license": "Apache-2.0",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=6a08e6bb4e46ff7fcbb53d409b253f6bad8a28ce",
+      "name": "kind-0.30.0",
+      "pname": "kind",
+      "rev": "6a08e6bb4e46ff7fcbb53d409b253f6bad8a28ce",
+      "rev_count": 883951,
+      "rev_date": "2025-10-25T06:24:58Z",
+      "scrape_date": "2025-10-27T02:29:36.824914Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "0.30.0",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/ip0ba3b4dgp7b6bivdshf1x668hh72cc-kind-0.30.0"
+      },
+      "system": "x86_64-darwin",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "kind",
+      "broken": false,
+      "derivation": "/nix/store/691x0jc2injxir4iyqallhf69mnddx7z-kind-0.30.0.drv",
+      "description": "Kubernetes IN Docker - local clusters for testing Kubernetes",
+      "install_id": "kind",
+      "license": "Apache-2.0",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=6a08e6bb4e46ff7fcbb53d409b253f6bad8a28ce",
+      "name": "kind-0.30.0",
+      "pname": "kind",
+      "rev": "6a08e6bb4e46ff7fcbb53d409b253f6bad8a28ce",
+      "rev_count": 883951,
+      "rev_date": "2025-10-25T06:24:58Z",
+      "scrape_date": "2025-10-27T03:01:17.670978Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "0.30.0",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/wrznv97xc63ijk541f95zyzn09s6qlzy-kind-0.30.0"
+      },
+      "system": "x86_64-linux",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "kubectl",
+      "broken": false,
+      "derivation": "/nix/store/4s4iqkg19cn9d64l0vss4szckhbyddh5-kubectl-1.34.1.drv",
+      "description": "Kubernetes CLI",
+      "install_id": "kubectl",
+      "license": "Apache-2.0",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=6a08e6bb4e46ff7fcbb53d409b253f6bad8a28ce",
+      "name": "kubectl-1.34.1",
+      "pname": "kubectl",
+      "rev": "6a08e6bb4e46ff7fcbb53d409b253f6bad8a28ce",
+      "rev_count": 883951,
+      "rev_date": "2025-10-25T06:24:58Z",
+      "scrape_date": "2025-10-27T02:08:31.064866Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "1.34.1",
+      "outputs_to_install": [
+        "man",
+        "out"
+      ],
+      "outputs": {
+        "convert": "/nix/store/ciffxa4czjlmjzmq4yq21l8zkjvadxsq-kubectl-1.34.1-convert",
+        "man": "/nix/store/5xfa19i31d4vhvbjihf6inqbp410fsp5-kubectl-1.34.1-man",
+        "out": "/nix/store/pv5lknr9a985cdmxy0zqg0vk0562w1js-kubectl-1.34.1"
+      },
+      "system": "aarch64-darwin",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "kubectl",
+      "broken": false,
+      "derivation": "/nix/store/k9d0hb2s3q1npazrx10sz4bysjkic2si-kubectl-1.34.1.drv",
+      "description": "Kubernetes CLI",
+      "install_id": "kubectl",
+      "license": "Apache-2.0",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=6a08e6bb4e46ff7fcbb53d409b253f6bad8a28ce",
+      "name": "kubectl-1.34.1",
+      "pname": "kubectl",
+      "rev": "6a08e6bb4e46ff7fcbb53d409b253f6bad8a28ce",
+      "rev_count": 883951,
+      "rev_date": "2025-10-25T06:24:58Z",
+      "scrape_date": "2025-10-27T02:18:48.222261Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "1.34.1",
+      "outputs_to_install": [
+        "man",
+        "out"
+      ],
+      "outputs": {
+        "convert": "/nix/store/hhdzbn767znxinwswfqab0d0bg2jpwln-kubectl-1.34.1-convert",
+        "man": "/nix/store/0s8wk88y5rnvnbgsy77x3ak02fnsq01i-kubectl-1.34.1-man",
+        "out": "/nix/store/8xfnh8k465mm5q2cnh83hqk3h4p9i9n2-kubectl-1.34.1"
+      },
+      "system": "aarch64-linux",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "kubectl",
+      "broken": false,
+      "derivation": "/nix/store/d4x50hyr7wim6gxpc5mk3w80mq6zfrs7-kubectl-1.34.1.drv",
+      "description": "Kubernetes CLI",
+      "install_id": "kubectl",
+      "license": "Apache-2.0",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=6a08e6bb4e46ff7fcbb53d409b253f6bad8a28ce",
+      "name": "kubectl-1.34.1",
+      "pname": "kubectl",
+      "rev": "6a08e6bb4e46ff7fcbb53d409b253f6bad8a28ce",
+      "rev_count": 883951,
+      "rev_date": "2025-10-25T06:24:58Z",
+      "scrape_date": "2025-10-27T02:29:37.032823Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "1.34.1",
+      "outputs_to_install": [
+        "man",
+        "out"
+      ],
+      "outputs": {
+        "convert": "/nix/store/0msa3w7f7bazgfpa2icmz7fkvcdrn4d7-kubectl-1.34.1-convert",
+        "man": "/nix/store/qf79cl59w1kga58030s9a9nvk2b3m1qc-kubectl-1.34.1-man",
+        "out": "/nix/store/80mql1xb9i7l5pb9cs5kmmgxhp351lv1-kubectl-1.34.1"
+      },
+      "system": "x86_64-darwin",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "kubectl",
+      "broken": false,
+      "derivation": "/nix/store/gnd8gwjpf3q8mi21dydc2nzw87npbva4-kubectl-1.34.1.drv",
+      "description": "Kubernetes CLI",
+      "install_id": "kubectl",
+      "license": "Apache-2.0",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=6a08e6bb4e46ff7fcbb53d409b253f6bad8a28ce",
+      "name": "kubectl-1.34.1",
+      "pname": "kubectl",
+      "rev": "6a08e6bb4e46ff7fcbb53d409b253f6bad8a28ce",
+      "rev_count": 883951,
+      "rev_date": "2025-10-25T06:24:58Z",
+      "scrape_date": "2025-10-27T03:01:18.131749Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "1.34.1",
+      "outputs_to_install": [
+        "man",
+        "out"
+      ],
+      "outputs": {
+        "convert": "/nix/store/aq74byw89ckq4hiw85gl2cq4c8h99wqi-kubectl-1.34.1-convert",
+        "man": "/nix/store/g5wlm6mrnf1pgjqapfb5r8zkh37rizgf-kubectl-1.34.1-man",
+        "out": "/nix/store/hkdsjac8x7pvq0lmazmg7qs6y8k6kayh-kubectl-1.34.1"
+      },
+      "system": "x86_64-linux",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "postgresql_16",
+      "broken": false,
+      "derivation": "/nix/store/26ds0iw7vbvdi21gavr1w17zi9wjdslz-postgresql-16.10.drv",
+      "description": "Powerful, open source object-relational database system",
+      "install_id": "postgresql_16",
+      "license": "PostgreSQL",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=6a08e6bb4e46ff7fcbb53d409b253f6bad8a28ce",
+      "name": "postgresql-16.10",
+      "pname": "postgresql_16",
+      "rev": "6a08e6bb4e46ff7fcbb53d409b253f6bad8a28ce",
+      "rev_count": 883951,
+      "rev_date": "2025-10-25T06:24:58Z",
+      "scrape_date": "2025-10-27T02:08:53.131109Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "16.10",
+      "outputs_to_install": [
+        "man",
+        "out"
+      ],
+      "outputs": {
+        "dev": "/nix/store/9b0x64bwjwv5fz0bdv6w1s4mm7960dk2-postgresql-16.10-dev",
+        "doc": "/nix/store/rivqz9k4x942kncpiqa11952vz2yd83w-postgresql-16.10-doc",
+        "jit": "/nix/store/5ma1iibg7rrhr9vk4lgmj4wsds1bn2lq-postgresql-16.10-jit",
+        "lib": "/nix/store/zyry2aqhcrjy6034l53fj2x6p3nbsirc-postgresql-16.10-lib",
+        "man": "/nix/store/19yczwkx2ghpc48h12svzwvdmai43h1d-postgresql-16.10-man",
+        "out": "/nix/store/mjj1ad4p7mhplvqkxir9irbwgncjna8k-postgresql-16.10",
+        "plperl": "/nix/store/k39hh30nj46s748y4x4zgdqavzmwg8l2-postgresql-16.10-plperl",
+        "plpython3": "/nix/store/0yrlydpg6v0pwyj8w9dxa473s7g0kk1a-postgresql-16.10-plpython3",
+        "pltcl": "/nix/store/s59v3p5kpjm6vp0jg03l8ksnacg0vas5-postgresql-16.10-pltcl"
+      },
+      "system": "aarch64-darwin",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "postgresql_16",
+      "broken": false,
+      "derivation": "/nix/store/wsr7k2di2xchkl1sbhgxxalx5vi0nmm8-postgresql-16.10.drv",
+      "description": "Powerful, open source object-relational database system",
+      "install_id": "postgresql_16",
+      "license": "PostgreSQL",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=6a08e6bb4e46ff7fcbb53d409b253f6bad8a28ce",
+      "name": "postgresql-16.10",
+      "pname": "postgresql_16",
+      "rev": "6a08e6bb4e46ff7fcbb53d409b253f6bad8a28ce",
+      "rev_count": 883951,
+      "rev_date": "2025-10-25T06:24:58Z",
+      "scrape_date": "2025-10-27T02:19:25.105357Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "16.10",
+      "outputs_to_install": [
+        "man",
+        "out"
+      ],
+      "outputs": {
+        "debug": "/nix/store/9snr8kwq5mgs99lfrrra84pga7rj028l-postgresql-16.10-debug",
+        "dev": "/nix/store/id2zxdz68yin7ipd5wxsbqrdxnl7dh12-postgresql-16.10-dev",
+        "doc": "/nix/store/ab963h9ffkcix3dyli05ayxvrnd5018c-postgresql-16.10-doc",
+        "jit": "/nix/store/6xb72z48dbd93sv72nlskcq8661hmnzi-postgresql-16.10-jit",
+        "lib": "/nix/store/6vv2r1hfn5v53chb7w35sm91w42f52lx-postgresql-16.10-lib",
+        "man": "/nix/store/mdyaig3jd7js0rhs50m7d2gjlpwp46d5-postgresql-16.10-man",
+        "out": "/nix/store/589gil3s8fd4wdnf8drdgjqsfd0xk5pr-postgresql-16.10",
+        "plperl": "/nix/store/71hqwmvp84nalfvqmz9mzxs9pc7c3z6x-postgresql-16.10-plperl",
+        "plpython3": "/nix/store/nl1cp5sad17p4l74mkiv1krcm7yybhwr-postgresql-16.10-plpython3",
+        "pltcl": "/nix/store/s7phbpyzyq2wjmqvm9ylq4xmfr9plrhg-postgresql-16.10-pltcl"
+      },
+      "system": "aarch64-linux",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "postgresql_16",
+      "broken": false,
+      "derivation": "/nix/store/fph4lw6vr6zqm8x0lv8p5pndvx0c7blv-postgresql-16.10.drv",
+      "description": "Powerful, open source object-relational database system",
+      "install_id": "postgresql_16",
+      "license": "PostgreSQL",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=6a08e6bb4e46ff7fcbb53d409b253f6bad8a28ce",
+      "name": "postgresql-16.10",
+      "pname": "postgresql_16",
+      "rev": "6a08e6bb4e46ff7fcbb53d409b253f6bad8a28ce",
+      "rev_count": 883951,
+      "rev_date": "2025-10-25T06:24:58Z",
+      "scrape_date": "2025-10-27T02:29:58.699506Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "16.10",
+      "outputs_to_install": [
+        "man",
+        "out"
+      ],
+      "outputs": {
+        "dev": "/nix/store/rml3rv4slkxc46a0f0xbbbxz53w48alp-postgresql-16.10-dev",
+        "doc": "/nix/store/abm0srgai0ha2kfr191cp55y0jnnv17q-postgresql-16.10-doc",
+        "jit": "/nix/store/12qd19cs7jzwfwbha3d21ml9kymhsw8q-postgresql-16.10-jit",
+        "lib": "/nix/store/8k2kfah4659xhwdg263214kyznci73ra-postgresql-16.10-lib",
+        "man": "/nix/store/3immiw548rhphj9lzpk13p859cy3wwx4-postgresql-16.10-man",
+        "out": "/nix/store/f7n0d7idv9pdja404afxik5r6b9a669x-postgresql-16.10",
+        "plperl": "/nix/store/j1m4qap45swww3xk1xxknrgjp634r559-postgresql-16.10-plperl",
+        "plpython3": "/nix/store/3a8i3dwwwz3amxr0pf1f0qs49f56aggb-postgresql-16.10-plpython3",
+        "pltcl": "/nix/store/ls0pc2m0s68bp5cicwnipard7hqvq7dy-postgresql-16.10-pltcl"
+      },
+      "system": "x86_64-darwin",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "postgresql_16",
+      "broken": false,
+      "derivation": "/nix/store/n5aazj0i4l44nb52k5sqzpananvs7fdl-postgresql-16.10.drv",
+      "description": "Powerful, open source object-relational database system",
+      "install_id": "postgresql_16",
+      "license": "PostgreSQL",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=6a08e6bb4e46ff7fcbb53d409b253f6bad8a28ce",
+      "name": "postgresql-16.10",
+      "pname": "postgresql_16",
+      "rev": "6a08e6bb4e46ff7fcbb53d409b253f6bad8a28ce",
+      "rev_count": 883951,
+      "rev_date": "2025-10-25T06:24:58Z",
+      "scrape_date": "2025-10-27T03:01:58.028544Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "16.10",
+      "outputs_to_install": [
+        "man",
+        "out"
+      ],
+      "outputs": {
+        "debug": "/nix/store/1bckzc3hq35dwl1qf5c76w53c992dsr9-postgresql-16.10-debug",
+        "dev": "/nix/store/skrx4qah0hy1c3l79znsfza5zzqrxcyn-postgresql-16.10-dev",
+        "doc": "/nix/store/cz4w41bdfnjg4mqfcmw1x0p4jgg61kac-postgresql-16.10-doc",
+        "jit": "/nix/store/2805lajnhh7qd3acb0abyvpm91hn59fw-postgresql-16.10-jit",
+        "lib": "/nix/store/qsn1yfq2cfy03rj4xmaf0g5wybmak6qq-postgresql-16.10-lib",
+        "man": "/nix/store/flpax8rjcj5niv0krcfx8nz4gm64n81c-postgresql-16.10-man",
+        "out": "/nix/store/8lfn9a2a2c16fa2ia7j5yp03pymgmbv1-postgresql-16.10",
+        "plperl": "/nix/store/1ivj0kb6gyzzgdy49g312rm3wdllgkfw-postgresql-16.10-plperl",
+        "plpython3": "/nix/store/bd9rs52j0lrhp6hrr68vn27gi17f11v8-postgresql-16.10-plpython3",
+        "pltcl": "/nix/store/iszsfbryiqfd7z2fk4pfh02c2g41r9h4-postgresql-16.10-pltcl"
+      },
+      "system": "x86_64-linux",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "python311",
+      "broken": false,
+      "derivation": "/nix/store/3nqhhbw25lij62a86a01i4blmpfl80rq-python3-3.11.14.drv",
+      "description": "High-level dynamically-typed programming language",
+      "install_id": "python311",
+      "license": "Python-2.0",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=6a08e6bb4e46ff7fcbb53d409b253f6bad8a28ce",
+      "name": "python3-3.11.14",
+      "pname": "python311",
+      "rev": "6a08e6bb4e46ff7fcbb53d409b253f6bad8a28ce",
+      "rev_count": 883951,
+      "rev_date": "2025-10-25T06:24:58Z",
+      "scrape_date": "2025-10-27T02:08:53.935814Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "python3-3.11.14",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/0710xrjndhjvpssqif83gyaz9qkxlwi3-python3-3.11.14"
+      },
+      "system": "aarch64-darwin",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "python311",
+      "broken": false,
+      "derivation": "/nix/store/fdvdfxj27mrbsbrs6ikbqlag3va3rhbr-python3-3.11.14.drv",
+      "description": "High-level dynamically-typed programming language",
+      "install_id": "python311",
+      "license": "Python-2.0",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=6a08e6bb4e46ff7fcbb53d409b253f6bad8a28ce",
+      "name": "python3-3.11.14",
+      "pname": "python311",
+      "rev": "6a08e6bb4e46ff7fcbb53d409b253f6bad8a28ce",
+      "rev_count": 883951,
+      "rev_date": "2025-10-25T06:24:58Z",
+      "scrape_date": "2025-10-27T02:19:26.460772Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "python3-3.11.14",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "debug": "/nix/store/yrbnpgrbj34kp80rhhmf9rqy0prncvgc-python3-3.11.14-debug",
+        "out": "/nix/store/82404paf3vf9nmj8gdfwjnz26g32cfq9-python3-3.11.14"
+      },
+      "system": "aarch64-linux",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "python311",
+      "broken": false,
+      "derivation": "/nix/store/aysb99mcc2q2ny6321sh1inaaml3vivi-python3-3.11.14.drv",
+      "description": "High-level dynamically-typed programming language",
+      "install_id": "python311",
+      "license": "Python-2.0",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=6a08e6bb4e46ff7fcbb53d409b253f6bad8a28ce",
+      "name": "python3-3.11.14",
+      "pname": "python311",
+      "rev": "6a08e6bb4e46ff7fcbb53d409b253f6bad8a28ce",
+      "rev_count": 883951,
+      "rev_date": "2025-10-25T06:24:58Z",
+      "scrape_date": "2025-10-27T02:29:59.493879Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "python3-3.11.14",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/ccb93zakkfa6rm36pnd7jwzpddfq2f9h-python3-3.11.14"
+      },
+      "system": "x86_64-darwin",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "python311",
+      "broken": false,
+      "derivation": "/nix/store/8b9pajhyi04q612c7i8dqwshkr1rxhll-python3-3.11.14.drv",
+      "description": "High-level dynamically-typed programming language",
+      "install_id": "python311",
+      "license": "Python-2.0",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=6a08e6bb4e46ff7fcbb53d409b253f6bad8a28ce",
+      "name": "python3-3.11.14",
+      "pname": "python311",
+      "rev": "6a08e6bb4e46ff7fcbb53d409b253f6bad8a28ce",
+      "rev_count": 883951,
+      "rev_date": "2025-10-25T06:24:58Z",
+      "scrape_date": "2025-10-27T03:01:59.466896Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "python3-3.11.14",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "debug": "/nix/store/pqcz3x6ny4psxhw3p07b1l2pmaa2yz2v-python3-3.11.14-debug",
+        "out": "/nix/store/sm8xkb2i0b6dbsll92iyfavy0b0cw0p6-python3-3.11.14"
+      },
+      "system": "x86_64-linux",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "redis",
+      "broken": false,
+      "derivation": "/nix/store/40813pbibs4x5dvxs58gzv8132ijr1sn-redis-8.2.2.drv",
+      "description": "Open source, advanced key-value store",
+      "install_id": "redis",
+      "license": "AGPL-3.0-only",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=6a08e6bb4e46ff7fcbb53d409b253f6bad8a28ce",
+      "name": "redis-8.2.2",
+      "pname": "redis",
+      "rev": "6a08e6bb4e46ff7fcbb53d409b253f6bad8a28ce",
+      "rev_count": 883951,
+      "rev_date": "2025-10-25T06:24:58Z",
+      "scrape_date": "2025-10-27T02:09:38.538876Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "8.2.2",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/098ag56hpj05yi1a0lc5h3dabbjcak47-redis-8.2.2"
+      },
+      "system": "aarch64-darwin",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "redis",
+      "broken": false,
+      "derivation": "/nix/store/vdjv3ma7n6fgdyi1jxqih23c80bry679-redis-8.2.2.drv",
+      "description": "Open source, advanced key-value store",
+      "install_id": "redis",
+      "license": "AGPL-3.0-only",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=6a08e6bb4e46ff7fcbb53d409b253f6bad8a28ce",
+      "name": "redis-8.2.2",
+      "pname": "redis",
+      "rev": "6a08e6bb4e46ff7fcbb53d409b253f6bad8a28ce",
+      "rev_count": 883951,
+      "rev_date": "2025-10-25T06:24:58Z",
+      "scrape_date": "2025-10-27T02:20:26.914059Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "8.2.2",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/76fkv3lj81582lxgcpz2c5qai4dbsy7s-redis-8.2.2"
+      },
+      "system": "aarch64-linux",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "redis",
+      "broken": false,
+      "derivation": "/nix/store/iad8zh6gvaxi99yqc7kn5arnl6fy75p3-redis-8.2.2.drv",
+      "description": "Open source, advanced key-value store",
+      "install_id": "redis",
+      "license": "AGPL-3.0-only",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=6a08e6bb4e46ff7fcbb53d409b253f6bad8a28ce",
+      "name": "redis-8.2.2",
+      "pname": "redis",
+      "rev": "6a08e6bb4e46ff7fcbb53d409b253f6bad8a28ce",
+      "rev_count": 883951,
+      "rev_date": "2025-10-25T06:24:58Z",
+      "scrape_date": "2025-10-27T02:30:42.731222Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "8.2.2",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/jlfys7wmr257l75dsz4x0va0wp6agmyr-redis-8.2.2"
+      },
+      "system": "x86_64-darwin",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "redis",
+      "broken": false,
+      "derivation": "/nix/store/csnzbhfjmkc934l5jbqx3653hfi8sxbi-redis-8.2.2.drv",
+      "description": "Open source, advanced key-value store",
+      "install_id": "redis",
+      "license": "AGPL-3.0-only",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=6a08e6bb4e46ff7fcbb53d409b253f6bad8a28ce",
+      "name": "redis-8.2.2",
+      "pname": "redis",
+      "rev": "6a08e6bb4e46ff7fcbb53d409b253f6bad8a28ce",
+      "rev_count": 883951,
+      "rev_date": "2025-10-25T06:24:58Z",
+      "scrape_date": "2025-10-27T03:02:59.796166Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "8.2.2",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/cmxzhc1q1dw301l5iwbjn3kx96vpj5am-redis-8.2.2"
+      },
+      "system": "x86_64-linux",
+      "group": "toplevel",
+      "priority": 5
+    }
+  ]
+}
