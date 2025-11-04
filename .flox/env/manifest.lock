@@ -48,14 +48,17 @@
     "build": {
       "airflow": {
         "command": "echo \"Building Apache Airflow ${AIRFLOW_VERSION} with Kubernetes support...\"\n\n# Create virtualenv in $out\npython -m venv \"$out\"\n\n# Activate virtualenv\nsource \"$out/bin/activate\"\n\n# Upgrade pip and build tools\npip install --upgrade pip setuptools wheel\n\n# Download constraint file\nCONSTRAINT_URL=\"https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${PYTHON_VERSION}.txt\"\necho \"Downloading constraints from ${CONSTRAINT_URL}...\"\ncurl -sSL \"${CONSTRAINT_URL}\" -o /tmp/airflow-constraints.txt\n\n# Install Airflow with Kubernetes provider\necho \"Installing apache-airflow[cncf.kubernetes]==${AIRFLOW_VERSION}...\"\npip install \"apache-airflow[cncf.kubernetes]==${AIRFLOW_VERSION}\" \\\n  --constraint /tmp/airflow-constraints.txt\n\n# Verify installation\necho \"\"\necho \"✅ Installation complete!\"\nairflow version\necho \"\"\necho \"Kubernetes provider:\"\npython -c \"from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator; print('  KubernetesPodOperator: OK')\"\n\n# Cleanup\nrm -f /tmp/airflow-constraints.txt\n",
+        "version": "${AIRFLOW_VERSION}",
         "description": "Apache Airflow with Kubernetes provider"
       },
       "airflow-full": {
         "command": "echo \"Building Apache Airflow ${AIRFLOW_VERSION} with common providers...\"\n\npython -m venv \"$out\"\nsource \"$out/bin/activate\"\npip install --upgrade pip setuptools wheel\n\nCONSTRAINT_URL=\"https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${PYTHON_VERSION}.txt\"\ncurl -sSL \"${CONSTRAINT_URL}\" -o /tmp/airflow-constraints.txt\n\necho \"Installing apache-airflow with multiple providers...\"\npip install \"apache-airflow[cncf.kubernetes,postgres,redis,http,ssh]==${AIRFLOW_VERSION}\" \\\n  --constraint /tmp/airflow-constraints.txt\n\necho \"\"\necho \"✅ Full installation complete!\"\nairflow version\necho \"\"\necho \"Installed providers:\"\nairflow providers list 2>/dev/null | grep -E \"apache-airflow-providers-(cncf-kubernetes|postgres|redis|http|ssh)\" || echo \"  (run 'airflow providers list' after activation)\"\n\nrm -f /tmp/airflow-constraints.txt\n",
+        "version": "${AIRFLOW_VERSION}",
         "description": "Apache Airflow with common providers (kubernetes, postgres, redis, http, ssh)"
       },
       "airflow-minimal": {
         "command": "echo \"Building minimal Apache Airflow ${AIRFLOW_VERSION}...\"\n\npython -m venv \"$out\"\nsource \"$out/bin/activate\"\npip install --upgrade pip setuptools wheel\n\nCONSTRAINT_URL=\"https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${PYTHON_VERSION}.txt\"\ncurl -sSL \"${CONSTRAINT_URL}\" -o /tmp/airflow-constraints.txt\n\necho \"Installing apache-airflow (no extra providers)...\"\npip install \"apache-airflow==${AIRFLOW_VERSION}\" \\\n  --constraint /tmp/airflow-constraints.txt\n\necho \"\"\necho \"✅ Minimal installation complete!\"\nairflow version\n\nrm -f /tmp/airflow-constraints.txt\n",
+        "version": "${AIRFLOW_VERSION}",
         "description": "Minimal Apache Airflow installation (LocalExecutor only)"
       }
     }

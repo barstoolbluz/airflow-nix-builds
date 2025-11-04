@@ -78,6 +78,7 @@ echo ""
 [build]
 # Build 1: Airflow with Kubernetes support
 [build.airflow]
+version = "${AIRFLOW_VERSION}"
 description = "Apache Airflow with Kubernetes provider"
 command = '''
 echo "Building Apache Airflow ${AIRFLOW_VERSION} with Kubernetes support..."
@@ -115,6 +116,7 @@ rm -f /tmp/airflow-constraints.txt
 
 # Build 2: Full Airflow with common providers
 [build.airflow-full]
+version = "${AIRFLOW_VERSION}"
 description = "Apache Airflow with common providers (kubernetes, postgres, redis, http, ssh)"
 command = '''
 echo "Building Apache Airflow ${AIRFLOW_VERSION} with common providers..."
@@ -142,6 +144,7 @@ rm -f /tmp/airflow-constraints.txt
 
 # Build 3: Minimal Airflow (no extra providers)
 [build.airflow-minimal]
+version = "${AIRFLOW_VERSION}"
 description = "Minimal Apache Airflow installation (LocalExecutor only)"
 command = '''
 echo "Building minimal Apache Airflow ${AIRFLOW_VERSION}..."
