@@ -48,7 +48,7 @@
     "build": {
       "airflow": {
         "command": "echo \"Building Apache Airflow ${AIRFLOW_VERSION} with Kubernetes support...\"\n\n# Create virtualenv in $out\npython -m venv \"$out\"\n\n# Activate virtualenv\nsource \"$out/bin/activate\"\n\n# Upgrade pip and build tools\npip install --upgrade pip setuptools wheel\n\n# Download constraint file\nCONSTRAINT_URL=\"https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${PYTHON_VERSION}.txt\"\necho \"Downloading constraints from ${CONSTRAINT_URL}...\"\ncurl -sSL \"${CONSTRAINT_URL}\" -o /tmp/airflow-constraints.txt\n\n# Install Airflow with Kubernetes provider\necho \"Installing apache-airflow[cncf.kubernetes]==${AIRFLOW_VERSION}...\"\npip install \"apache-airflow[cncf.kubernetes]==${AIRFLOW_VERSION}\" \\\n  --constraint /tmp/airflow-constraints.txt\n\n# Verify installation\necho \"\"\necho \"✅ Installation complete!\"\nairflow version\necho \"\"\necho \"Kubernetes provider:\"\npython -c \"from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator; print('  KubernetesPodOperator: OK')\"\n\n# Cleanup\nrm -f /tmp/airflow-constraints.txt\n",
-        "version": "${AIRFLOW_VERSION}",
+        "version": "3.1.1",
         "description": "Apache Airflow with Kubernetes provider"
       },
       "airflow-full": {

@@ -78,7 +78,7 @@ echo ""
 [build]
 # Build 1: Airflow with Kubernetes support
 [build.airflow]
-version = "${AIRFLOW_VERSION}"
+version = "3.1.1"
 description = "Apache Airflow with Kubernetes provider"
 command = '''
 echo "Building Apache Airflow ${AIRFLOW_VERSION} with Kubernetes support..."
