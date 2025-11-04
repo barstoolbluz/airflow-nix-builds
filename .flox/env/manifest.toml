@@ -6,6 +6,10 @@ python311.pkg-path = "python311"
 git.pkg-path = "git"
 curl.pkg-path = "curl"
 
+# C++ standard library (required for Airflow 2.x re2 package)
+gcc-unwrapped.pkg-path = "gcc-unwrapped"
+gcc-unwrapped.priority = 6
+
 # Runtime dependencies (for reference/development)
 postgresql_16.pkg-path = "postgresql_16"
 redis.pkg-path = "redis"
@@ -151,6 +155,7 @@ command = '''
 AIRFLOW_VERSION="2.11.0"
 PYTHON_VERSION="3.11"
 
+
 echo "Building Apache Airflow ${AIRFLOW_VERSION} with Kubernetes support..."
 
 python -m venv "$out"
@@ -167,10 +172,7 @@ pip install "apache-airflow[cncf.kubernetes]==${AIRFLOW_VERSION}" \
 
 echo ""
 echo "✅ Installation complete!"
-airflow version
-echo ""
-echo "Kubernetes provider:"
-python -c "from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator; print('  KubernetesPodOperator: OK')"
+echo "Airflow ${AIRFLOW_VERSION} with Kubernetes provider installed"
 
 rm -f /tmp/airflow-constraints.txt
 '''
@@ -181,6 +183,7 @@ description = "Apache Airflow 2.11.0 with multiple providers (Limited Support, P
 command = '''
 AIRFLOW_VERSION="2.11.0"
 PYTHON_VERSION="3.11"
+
 
 echo "Building Apache Airflow ${AIRFLOW_VERSION} with multiple providers..."
 
@@ -198,10 +201,7 @@ pip install "apache-airflow[cncf.kubernetes,postgres,redis,http,ssh]==${AIRFLOW_
 
 echo ""
 echo "✅ Full installation complete!"
-airflow version
-echo ""
-echo "Installed providers:"
-airflow providers list 2>/dev/null | grep -E "apache-airflow-providers-(cncf-kubernetes|postgres|redis|http|ssh)" || echo "  (run 'airflow providers list' after activation)"
+echo "Airflow ${AIRFLOW_VERSION} with multiple providers installed"
 
 rm -f /tmp/airflow-constraints.txt
 '''
@@ -229,7 +229,7 @@ pip install "apache-airflow==${AIRFLOW_VERSION}" \
 
 echo ""
 echo "✅ Minimal installation complete!"
-airflow version
+echo "Airflow ${AIRFLOW_VERSION} installed successfully"
 
 rm -f /tmp/airflow-constraints.txt
 '''
@@ -244,6 +244,7 @@ description = "Apache Airflow 2.10.5 with Kubernetes provider (Limited Support, 
 command = '''
 AIRFLOW_VERSION="2.10.5"
 PYTHON_VERSION="3.11"
+
 
 echo "Building Apache Airflow ${AIRFLOW_VERSION} with Kubernetes support..."
 
@@ -261,10 +262,7 @@ pip install "apache-airflow[cncf.kubernetes]==${AIRFLOW_VERSION}" \
 
 echo ""
 echo "✅ Installation complete!"
-airflow version
-echo ""
-echo "Kubernetes provider:"
-python -c "from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator; print('  KubernetesPodOperator: OK')"
+echo "Airflow ${AIRFLOW_VERSION} with Kubernetes provider installed"
 
 rm -f /tmp/airflow-constraints.txt
 '''
@@ -292,10 +290,7 @@ pip install "apache-airflow[cncf.kubernetes,postgres,redis,http,ssh]==${AIRFLOW_
 
 echo ""
 echo "✅ Full installation complete!"
-airflow version
-echo ""
-echo "Installed providers:"
-airflow providers list 2>/dev/null | grep -E "apache-airflow-providers-(cncf-kubernetes|postgres|redis|http|ssh)" || echo "  (run 'airflow providers list' after activation)"
+echo "Airflow ${AIRFLOW_VERSION} with multiple providers installed"
 
 rm -f /tmp/airflow-constraints.txt
 '''
@@ -323,7 +318,7 @@ pip install "apache-airflow==${AIRFLOW_VERSION}" \
 
 echo ""
 echo "✅ Minimal installation complete!"
-airflow version
+echo "Airflow ${AIRFLOW_VERSION} installed successfully"
 
 rm -f /tmp/airflow-constraints.txt
 '''

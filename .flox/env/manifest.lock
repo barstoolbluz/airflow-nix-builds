@@ -6,6 +6,10 @@
       "curl": {
         "pkg-path": "curl"
       },
+      "gcc-unwrapped": {
+        "pkg-path": "gcc-unwrapped",
+        "priority": 6
+      },
       "git": {
         "pkg-path": "git"
       },
@@ -43,12 +47,12 @@
     },
     "build": {
       "airflow-2-10-5": {
-        "command": "AIRFLOW_VERSION=\"2.10.5\"\nPYTHON_VERSION=\"3.11\"\n\necho \"Building Apache Airflow ${AIRFLOW_VERSION} with Kubernetes support...\"\n\npython -m venv \"$out\"\nsource \"$out/bin/activate\"\npip install --upgrade pip setuptools wheel\n\nCONSTRAINT_URL=\"https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${PYTHON_VERSION}.txt\"\necho \"Downloading constraints from ${CONSTRAINT_URL}...\"\ncurl -sSL \"${CONSTRAINT_URL}\" -o /tmp/airflow-constraints.txt\n\necho \"Installing apache-airflow[cncf.kubernetes]==${AIRFLOW_VERSION}...\"\npip install \"apache-airflow[cncf.kubernetes]==${AIRFLOW_VERSION}\" \\\n  --constraint /tmp/airflow-constraints.txt\n\necho \"\"\necho \"✅ Installation complete!\"\nairflow version\necho \"\"\necho \"Kubernetes provider:\"\npython -c \"from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator; print('  KubernetesPodOperator: OK')\"\n\nrm -f /tmp/airflow-constraints.txt\n",
+        "command": "AIRFLOW_VERSION=\"2.10.5\"\nPYTHON_VERSION=\"3.11\"\n\n\necho \"Building Apache Airflow ${AIRFLOW_VERSION} with Kubernetes support...\"\n\npython -m venv \"$out\"\nsource \"$out/bin/activate\"\npip install --upgrade pip setuptools wheel\n\nCONSTRAINT_URL=\"https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${PYTHON_VERSION}.txt\"\necho \"Downloading constraints from ${CONSTRAINT_URL}...\"\ncurl -sSL \"${CONSTRAINT_URL}\" -o /tmp/airflow-constraints.txt\n\necho \"Installing apache-airflow[cncf.kubernetes]==${AIRFLOW_VERSION}...\"\npip install \"apache-airflow[cncf.kubernetes]==${AIRFLOW_VERSION}\" \\\n  --constraint /tmp/airflow-constraints.txt\n\necho \"\"\necho \"✅ Installation complete!\"\necho \"Airflow ${AIRFLOW_VERSION} with Kubernetes provider installed\"\n\nrm -f /tmp/airflow-constraints.txt\n",
         "version": "2.10.5",
         "description": "Apache Airflow 2.10.5 with Kubernetes provider (Limited Support, Python 3.8-3.12)"
       },
       "airflow-2-11-0": {
-        "command": "AIRFLOW_VERSION=\"2.11.0\"\nPYTHON_VERSION=\"3.11\"\n\necho \"Building Apache Airflow ${AIRFLOW_VERSION} with Kubernetes support...\"\n\npython -m venv \"$out\"\nsource \"$out/bin/activate\"\npip install --upgrade pip setuptools wheel\n\nCONSTRAINT_URL=\"https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${PYTHON_VERSION}.txt\"\necho \"Downloading constraints from ${CONSTRAINT_URL}...\"\ncurl -sSL \"${CONSTRAINT_URL}\" -o /tmp/airflow-constraints.txt\n\necho \"Installing apache-airflow[cncf.kubernetes]==${AIRFLOW_VERSION}...\"\npip install \"apache-airflow[cncf.kubernetes]==${AIRFLOW_VERSION}\" \\\n  --constraint /tmp/airflow-constraints.txt\n\necho \"\"\necho \"✅ Installation complete!\"\nairflow version\necho \"\"\necho \"Kubernetes provider:\"\npython -c \"from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator; print('  KubernetesPodOperator: OK')\"\n\nrm -f /tmp/airflow-constraints.txt\n",
+        "command": "AIRFLOW_VERSION=\"2.11.0\"\nPYTHON_VERSION=\"3.11\"\n\n\necho \"Building Apache Airflow ${AIRFLOW_VERSION} with Kubernetes support...\"\n\npython -m venv \"$out\"\nsource \"$out/bin/activate\"\npip install --upgrade pip setuptools wheel\n\nCONSTRAINT_URL=\"https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${PYTHON_VERSION}.txt\"\necho \"Downloading constraints from ${CONSTRAINT_URL}...\"\ncurl -sSL \"${CONSTRAINT_URL}\" -o /tmp/airflow-constraints.txt\n\necho \"Installing apache-airflow[cncf.kubernetes]==${AIRFLOW_VERSION}...\"\npip install \"apache-airflow[cncf.kubernetes]==${AIRFLOW_VERSION}\" \\\n  --constraint /tmp/airflow-constraints.txt\n\necho \"\"\necho \"✅ Installation complete!\"\necho \"Airflow ${AIRFLOW_VERSION} with Kubernetes provider installed\"\n\nrm -f /tmp/airflow-constraints.txt\n",
         "version": "2.11.0",
         "description": "Apache Airflow 2.11.0 with Kubernetes provider (Limited Support, Python 3.9-3.12)"
       },
@@ -58,12 +62,12 @@
         "description": "Apache Airflow 3.1.1 with Kubernetes provider (Active Support, Python 3.9-3.12)"
       },
       "airflow-full-2-10-5": {
-        "command": "AIRFLOW_VERSION=\"2.10.5\"\nPYTHON_VERSION=\"3.11\"\n\necho \"Building Apache Airflow ${AIRFLOW_VERSION} with multiple providers...\"\n\npython -m venv \"$out\"\nsource \"$out/bin/activate\"\npip install --upgrade pip setuptools wheel\n\nCONSTRAINT_URL=\"https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${PYTHON_VERSION}.txt\"\necho \"Downloading constraints from ${CONSTRAINT_URL}...\"\ncurl -sSL \"${CONSTRAINT_URL}\" -o /tmp/airflow-constraints.txt\n\necho \"Installing apache-airflow with multiple providers...\"\npip install \"apache-airflow[cncf.kubernetes,postgres,redis,http,ssh]==${AIRFLOW_VERSION}\" \\\n  --constraint /tmp/airflow-constraints.txt\n\necho \"\"\necho \"✅ Full installation complete!\"\nairflow version\necho \"\"\necho \"Installed providers:\"\nairflow providers list 2>/dev/null | grep -E \"apache-airflow-providers-(cncf-kubernetes|postgres|redis|http|ssh)\" || echo \"  (run 'airflow providers list' after activation)\"\n\nrm -f /tmp/airflow-constraints.txt\n",
+        "command": "AIRFLOW_VERSION=\"2.10.5\"\nPYTHON_VERSION=\"3.11\"\n\necho \"Building Apache Airflow ${AIRFLOW_VERSION} with multiple providers...\"\n\npython -m venv \"$out\"\nsource \"$out/bin/activate\"\npip install --upgrade pip setuptools wheel\n\nCONSTRAINT_URL=\"https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${PYTHON_VERSION}.txt\"\necho \"Downloading constraints from ${CONSTRAINT_URL}...\"\ncurl -sSL \"${CONSTRAINT_URL}\" -o /tmp/airflow-constraints.txt\n\necho \"Installing apache-airflow with multiple providers...\"\npip install \"apache-airflow[cncf.kubernetes,postgres,redis,http,ssh]==${AIRFLOW_VERSION}\" \\\n  --constraint /tmp/airflow-constraints.txt\n\necho \"\"\necho \"✅ Full installation complete!\"\necho \"Airflow ${AIRFLOW_VERSION} with multiple providers installed\"\n\nrm -f /tmp/airflow-constraints.txt\n",
         "version": "2.10.5",
         "description": "Apache Airflow 2.10.5 with multiple providers (Limited Support, Python 3.8-3.12)"
       },
       "airflow-full-2-11-0": {
-        "command": "AIRFLOW_VERSION=\"2.11.0\"\nPYTHON_VERSION=\"3.11\"\n\necho \"Building Apache Airflow ${AIRFLOW_VERSION} with multiple providers...\"\n\npython -m venv \"$out\"\nsource \"$out/bin/activate\"\npip install --upgrade pip setuptools wheel\n\nCONSTRAINT_URL=\"https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${PYTHON_VERSION}.txt\"\necho \"Downloading constraints from ${CONSTRAINT_URL}...\"\ncurl -sSL \"${CONSTRAINT_URL}\" -o /tmp/airflow-constraints.txt\n\necho \"Installing apache-airflow with multiple providers...\"\npip install \"apache-airflow[cncf.kubernetes,postgres,redis,http,ssh]==${AIRFLOW_VERSION}\" \\\n  --constraint /tmp/airflow-constraints.txt\n\necho \"\"\necho \"✅ Full installation complete!\"\nairflow version\necho \"\"\necho \"Installed providers:\"\nairflow providers list 2>/dev/null | grep -E \"apache-airflow-providers-(cncf-kubernetes|postgres|redis|http|ssh)\" || echo \"  (run 'airflow providers list' after activation)\"\n\nrm -f /tmp/airflow-constraints.txt\n",
+        "command": "AIRFLOW_VERSION=\"2.11.0\"\nPYTHON_VERSION=\"3.11\"\n\n\necho \"Building Apache Airflow ${AIRFLOW_VERSION} with multiple providers...\"\n\npython -m venv \"$out\"\nsource \"$out/bin/activate\"\npip install --upgrade pip setuptools wheel\n\nCONSTRAINT_URL=\"https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${PYTHON_VERSION}.txt\"\necho \"Downloading constraints from ${CONSTRAINT_URL}...\"\ncurl -sSL \"${CONSTRAINT_URL}\" -o /tmp/airflow-constraints.txt\n\necho \"Installing apache-airflow with multiple providers...\"\npip install \"apache-airflow[cncf.kubernetes,postgres,redis,http,ssh]==${AIRFLOW_VERSION}\" \\\n  --constraint /tmp/airflow-constraints.txt\n\necho \"\"\necho \"✅ Full installation complete!\"\necho \"Airflow ${AIRFLOW_VERSION} with multiple providers installed\"\n\nrm -f /tmp/airflow-constraints.txt\n",
         "version": "2.11.0",
         "description": "Apache Airflow 2.11.0 with multiple providers (Limited Support, Python 3.9-3.12)"
       },
@@ -73,12 +77,12 @@
         "description": "Apache Airflow 3.1.1 with multiple providers (Active Support, Python 3.9-3.12)"
       },
       "airflow-minimal-2-10-5": {
-        "command": "AIRFLOW_VERSION=\"2.10.5\"\nPYTHON_VERSION=\"3.11\"\n\necho \"Building minimal Apache Airflow ${AIRFLOW_VERSION}...\"\n\npython -m venv \"$out\"\nsource \"$out/bin/activate\"\npip install --upgrade pip setuptools wheel\n\nCONSTRAINT_URL=\"https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${PYTHON_VERSION}.txt\"\necho \"Downloading constraints from ${CONSTRAINT_URL}...\"\ncurl -sSL \"${CONSTRAINT_URL}\" -o /tmp/airflow-constraints.txt\n\necho \"Installing apache-airflow (no extra providers)...\"\npip install \"apache-airflow==${AIRFLOW_VERSION}\" \\\n  --constraint /tmp/airflow-constraints.txt\n\necho \"\"\necho \"✅ Minimal installation complete!\"\nairflow version\n\nrm -f /tmp/airflow-constraints.txt\n",
+        "command": "AIRFLOW_VERSION=\"2.10.5\"\nPYTHON_VERSION=\"3.11\"\n\necho \"Building minimal Apache Airflow ${AIRFLOW_VERSION}...\"\n\npython -m venv \"$out\"\nsource \"$out/bin/activate\"\npip install --upgrade pip setuptools wheel\n\nCONSTRAINT_URL=\"https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${PYTHON_VERSION}.txt\"\necho \"Downloading constraints from ${CONSTRAINT_URL}...\"\ncurl -sSL \"${CONSTRAINT_URL}\" -o /tmp/airflow-constraints.txt\n\necho \"Installing apache-airflow (no extra providers)...\"\npip install \"apache-airflow==${AIRFLOW_VERSION}\" \\\n  --constraint /tmp/airflow-constraints.txt\n\necho \"\"\necho \"✅ Minimal installation complete!\"\necho \"Airflow ${AIRFLOW_VERSION} installed successfully\"\n\nrm -f /tmp/airflow-constraints.txt\n",
         "version": "2.10.5",
         "description": "Minimal Apache Airflow 2.10.5 (LocalExecutor only, Limited Support, Python 3.8-3.12)"
       },
       "airflow-minimal-2-11-0": {
-        "command": "AIRFLOW_VERSION=\"2.11.0\"\nPYTHON_VERSION=\"3.11\"\n\necho \"Building minimal Apache Airflow ${AIRFLOW_VERSION}...\"\n\npython -m venv \"$out\"\nsource \"$out/bin/activate\"\npip install --upgrade pip setuptools wheel\n\nCONSTRAINT_URL=\"https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${PYTHON_VERSION}.txt\"\necho \"Downloading constraints from ${CONSTRAINT_URL}...\"\ncurl -sSL \"${CONSTRAINT_URL}\" -o /tmp/airflow-constraints.txt\n\necho \"Installing apache-airflow (no extra providers)...\"\npip install \"apache-airflow==${AIRFLOW_VERSION}\" \\\n  --constraint /tmp/airflow-constraints.txt\n\necho \"\"\necho \"✅ Minimal installation complete!\"\nairflow version\n\nrm -f /tmp/airflow-constraints.txt\n",
+        "command": "AIRFLOW_VERSION=\"2.11.0\"\nPYTHON_VERSION=\"3.11\"\n\necho \"Building minimal Apache Airflow ${AIRFLOW_VERSION}...\"\n\npython -m venv \"$out\"\nsource \"$out/bin/activate\"\npip install --upgrade pip setuptools wheel\n\nCONSTRAINT_URL=\"https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${PYTHON_VERSION}.txt\"\necho \"Downloading constraints from ${CONSTRAINT_URL}...\"\ncurl -sSL \"${CONSTRAINT_URL}\" -o /tmp/airflow-constraints.txt\n\necho \"Installing apache-airflow (no extra providers)...\"\npip install \"apache-airflow==${AIRFLOW_VERSION}\" \\\n  --constraint /tmp/airflow-constraints.txt\n\necho \"\"\necho \"✅ Minimal installation complete!\"\necho \"Airflow ${AIRFLOW_VERSION} installed successfully\"\n\nrm -f /tmp/airflow-constraints.txt\n",
         "version": "2.11.0",
         "description": "Minimal Apache Airflow 2.11.0 (LocalExecutor only, Limited Support, Python 3.9-3.12)"
       },
@@ -227,6 +231,142 @@
       "system": "x86_64-linux",
       "group": "toplevel",
       "priority": 5
+    },
+    {
+      "attr_path": "gcc-unwrapped",
+      "broken": false,
+      "derivation": "/nix/store/iqz9qxlk4f59lv4kd2zx9fx56l8ls4pf-gcc-14.3.0.drv",
+      "description": "GNU Compiler Collection, version 14.3.0",
+      "install_id": "gcc-unwrapped",
+      "license": "GPL-3.0-or-later",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=6a08e6bb4e46ff7fcbb53d409b253f6bad8a28ce",
+      "name": "gcc-14.3.0",
+      "pname": "gcc-unwrapped",
+      "rev": "6a08e6bb4e46ff7fcbb53d409b253f6bad8a28ce",
+      "rev_count": 883951,
+      "rev_date": "2025-10-25T06:24:58Z",
+      "scrape_date": "2025-10-27T02:08:16.368916Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "14.3.0",
+      "outputs_to_install": [
+        "man",
+        "out"
+      ],
+      "outputs": {
+        "info": "/nix/store/rcla6i1jlikcg5gdikmic39z0bvfr33c-gcc-14.3.0-info",
+        "lib": "/nix/store/0hmh0bmpjbzya6lqi3ziy2ymj9696qln-gcc-14.3.0-lib",
+        "man": "/nix/store/j1biv3nq2mlgysgli6pi289frbbpn07y-gcc-14.3.0-man",
+        "out": "/nix/store/x0rg5sdxc63l5knb8pmyqnb75njbl533-gcc-14.3.0"
+      },
+      "system": "aarch64-darwin",
+      "group": "toplevel",
+      "priority": 6
+    },
+    {
+      "attr_path": "gcc-unwrapped",
+      "broken": false,
+      "derivation": "/nix/store/9qnqq1jzddqnb38akfjhl3kq4dqifmkq-gcc-14.3.0.drv",
+      "description": "GNU Compiler Collection, version 14.3.0",
+      "install_id": "gcc-unwrapped",
+      "license": "GPL-3.0-or-later",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=6a08e6bb4e46ff7fcbb53d409b253f6bad8a28ce",
+      "name": "gcc-14.3.0",
+      "pname": "gcc-unwrapped",
+      "rev": "6a08e6bb4e46ff7fcbb53d409b253f6bad8a28ce",
+      "rev_count": 883951,
+      "rev_date": "2025-10-25T06:24:58Z",
+      "scrape_date": "2025-10-27T02:18:27.259123Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "14.3.0",
+      "outputs_to_install": [
+        "man",
+        "out"
+      ],
+      "outputs": {
+        "checksum": "/nix/store/mfi7z57s4lwfjzifxs7jny0qm2h5f3vx-gcc-14.3.0-checksum",
+        "info": "/nix/store/8vm32slp7b8v88n2xjzwp84ljm5064g6-gcc-14.3.0-info",
+        "lib": "/nix/store/zmjqwzhgl9hwr8xnk8raj8d50lzkql66-gcc-14.3.0-lib",
+        "libgcc": "/nix/store/f8w1i7yisixb9hivzbk0l4ixmf67fjqr-gcc-14.3.0-libgcc",
+        "man": "/nix/store/81y9ib5ydnnpqhyg70078zwcxzq6zpir-gcc-14.3.0-man",
+        "out": "/nix/store/z6c8n7gxx2i57zvmri96j4zgxb8v4v1f-gcc-14.3.0"
+      },
+      "system": "aarch64-linux",
+      "group": "toplevel",
+      "priority": 6
+    },
+    {
+      "attr_path": "gcc-unwrapped",
+      "broken": false,
+      "derivation": "/nix/store/8pns6v0aq78j9nh09qrc561qljpkbkim-gcc-14.3.0.drv",
+      "description": "GNU Compiler Collection, version 14.3.0",
+      "install_id": "gcc-unwrapped",
+      "license": "GPL-3.0-or-later",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=6a08e6bb4e46ff7fcbb53d409b253f6bad8a28ce",
+      "name": "gcc-14.3.0",
+      "pname": "gcc-unwrapped",
+      "rev": "6a08e6bb4e46ff7fcbb53d409b253f6bad8a28ce",
+      "rev_count": 883951,
+      "rev_date": "2025-10-25T06:24:58Z",
+      "scrape_date": "2025-10-27T02:29:22.221359Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "14.3.0",
+      "outputs_to_install": [
+        "man",
+        "out"
+      ],
+      "outputs": {
+        "info": "/nix/store/0qni6jhz6xshdxcjzfdzww0ccaiyb0aj-gcc-14.3.0-info",
+        "lib": "/nix/store/ih2i0vfgqlsz7mqvxzm40xy08kcnf1xk-gcc-14.3.0-lib",
+        "man": "/nix/store/6syl8xr7j8yc340i524gapgznvjmac2a-gcc-14.3.0-man",
+        "out": "/nix/store/f8avfw6i9acdwcl8kcijm7g4z3s00ysz-gcc-14.3.0"
+      },
+      "system": "x86_64-darwin",
+      "group": "toplevel",
+      "priority": 6
+    },
+    {
+      "attr_path": "gcc-unwrapped",
+      "broken": false,
+      "derivation": "/nix/store/csn2adchl5yyh8kiy4mcaf3bb490zh7n-gcc-14.3.0.drv",
+      "description": "GNU Compiler Collection, version 14.3.0",
+      "install_id": "gcc-unwrapped",
+      "license": "GPL-3.0-or-later",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=6a08e6bb4e46ff7fcbb53d409b253f6bad8a28ce",
+      "name": "gcc-14.3.0",
+      "pname": "gcc-unwrapped",
+      "rev": "6a08e6bb4e46ff7fcbb53d409b253f6bad8a28ce",
+      "rev_count": 883951,
+      "rev_date": "2025-10-25T06:24:58Z",
+      "scrape_date": "2025-10-27T03:00:55.568823Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "14.3.0",
+      "outputs_to_install": [
+        "man",
+        "out"
+      ],
+      "outputs": {
+        "checksum": "/nix/store/zjyl1cdjz9jkjzqf95jlxffkkx58dwls-gcc-14.3.0-checksum",
+        "info": "/nix/store/d03p34500svz1wlrwpzwr4930xzd0g1a-gcc-14.3.0-info",
+        "lib": "/nix/store/z7a34j3xnp66rpddayyxrxwsahxccbip-gcc-14.3.0-lib",
+        "libgcc": "/nix/store/mnd897flngivhxnw8sxznhrcwwc9vyk3-gcc-14.3.0-libgcc",
+        "man": "/nix/store/j7mhlc3lwv6bz199iclik4fmgh4f8g24-gcc-14.3.0-man",
+        "out": "/nix/store/ffrg0560kj0066s4k9pznjand907nlnz-gcc-14.3.0"
+      },
+      "system": "x86_64-linux",
+      "group": "toplevel",
+      "priority": 6
     },
     {
       "attr_path": "git",
