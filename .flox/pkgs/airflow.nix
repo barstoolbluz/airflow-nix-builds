@@ -10,7 +10,7 @@ let
   # ===========================================================================
   # USER CONFIGURATION - Edit these values
   # ===========================================================================
-  version = "3.1.1";           # Airflow version to build
+  version = "2.10.5";          # Airflow version to build
   pythonVersion = "3.11";      # Python version for constraint file URL
 
   # Version metadata for reference
@@ -89,7 +89,7 @@ let
 
     outputHashMode = "recursive";
     outputHashAlgo = "sha256";
-    outputHash = "sha256-oLpg+9pEQKTwgxUK7YCJ5oSYvfO+QAYvMuoBdPlL3RQ=";
+    outputHash = "sha256-MLVuwsDnw2o4gROZCcRMN/v3lZmuUB1ALC3DS9wu83Y=";
   };
 
 in
