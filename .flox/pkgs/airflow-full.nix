@@ -93,8 +93,11 @@ let
     outputHashMode = "recursive";
     outputHashAlgo = "sha256";
     # Platform-specific hashes (pip downloads different wheels per platform)
-    outputHash = if stdenv.isDarwin
-      then "sha256-NIfYuO9f8h6mdAZteTbMubOju4oTm3tiHyA9HfWp7DE="  # macOS
+    outputHash =
+      if stdenv.isDarwin && stdenv.isAarch64
+        then "sha256-NIfYuO9f8h6mdAZteTbMubOju4oTm3tiHyA9HfWp7DE="  # macOS Apple Silicon
+      else if stdenv.isDarwin
+        then "sha256-azmEnrPAkkvHsXr6YJlmJ1PFHH12VHp85aXqqgLNzyU="  # macOS Intel
       else "sha256-rgJkxVPMjxpWyMhL3GltBMs1OCzJLEp8z+6OJBLXGro="; # Linux
   };
 
